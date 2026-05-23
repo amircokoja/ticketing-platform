@@ -1,4 +1,4 @@
-using Api.Data;
+using Domain.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,7 +8,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<TicketingDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Ticketing"))
+    options
+        .UseNpgsql(builder.Configuration.GetConnectionString("Ticketing"))
+        .UseSnakeCaseNamingConvention()
 );
 
 builder
