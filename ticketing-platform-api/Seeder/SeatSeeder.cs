@@ -6,30 +6,46 @@ namespace Seeder;
 
 public static class SeatSeeder
 {
-    private const int Count = 10_000;
-
-    public static async Task<List<Seat>> SeedAsync(TicketingDbContext db, IReadOnlyList<Event> events)
+    public static async Task<List<Seat>> SeedAsync(
+        TicketingDbContext db,
+        IReadOnlyList<Event> events
+    )
     {
         var sw = Stopwatch.StartNew();
-        var sections = new[] { "A", "B", "C", "D", "VIP" };
-        var seats = new List<Seat>(Count);
-        var seatsPerEvent = Count / events.Count;
+        var random = new Random(4);
+        var sections = new[] { "VIP", "A", "B", "C", "D" };
 
-        foreach (var ticketEvent in events)
+        var seats = new List<Seat>();
+
+        foreach (var ev in events)
         {
-            for (var i = 0; i < seatsPerEvent; i++)
-            {
-                var section = sections[i % sections.Length];
+            // Each event has between 1,500 and 5,000 seats — captures the
+            // small-club-to-stadium variety. Skew matters for query plans.
+            var seatCount = random.Next(1500, 5001);
 
-                seats.Add(new Seat
+            for (var i = 0; i < seatCount; i++)
+            {
+                var section = sections[i * sections.Length / seatCount]; // VIP first, then A..D
+                var basePrice = section switch
                 {
-                    EventId = ticketEvent.Id,
-                    Section = section,
-                    Row = ((i / 20) % 10 + 1).ToString(),
-                    Number = i % 20 + 1,
-                    Price = section == "VIP" ? 95m : 25m + i % 8 * 7.5m,
-                    Status = "available",
-                });
+                    "VIP" => 200m,
+                    "A" => 120m,
+                    "B" => 80m,
+                    "C" => 50m,
+                    _ => 30m,
+                };
+
+                seats.Add(
+                    new Seat
+                    {
+                        EventId = ev.Id,
+                        Section = section,
+                        Row = ((i / 20) % 50 + 1).ToString(),
+                        Number = i % 20 + 1,
+                        Price = basePrice + random.Next(0, 20),
+                        Status = "available", // start all available; OrderSeeder flips some to sold
+                    }
+                );
             }
         }
 

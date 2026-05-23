@@ -30,7 +30,7 @@ var venues = await VenueSeeder.SeedAsync(db);
 var customers = await CustomerSeeder.SeedAsync(db);
 var events = await EventSeeder.SeedAsync(db, venues);
 var seats = await SeatSeeder.SeedAsync(db, events);
-await OrderSeeder.SeedAsync(db, customers, events, seats);
+await OrderSeeder.SeedAsync(db, customers, seats);
 
 total.Stop();
 Console.WriteLine($"\nDone in {total.Elapsed.TotalSeconds:F1}s.");
